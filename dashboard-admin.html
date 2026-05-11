@@ -486,25 +486,39 @@ loadUsers();
 // =======================
 // SIMPAN USER
 // =======================
+// =======================
+// SIMPAN USER
+// =======================
 async function simpanUser(){
 
-  const id =
-    document.getElementById("user_id").value;
+  try{
 
-  const action =
-    id == ""
-    ? "tambahUser"
-    : "editUser";
+    // VALIDASI
+    if(
+      document.getElementById("nama").value == "" ||
+      document.getElementById("username").value == "" ||
+      document.getElementById("password").value == ""
+    ){
 
-  await fetch(API_URL,{
+      alert("Lengkapi form user");
 
-    method:"POST",
+      return;
 
-    body:JSON.stringify({
+    }
 
-      action:action,
+    const id =
+      document.getElementById("user_id").value;
 
-      id:id,
+    const action =
+      id == ""
+      ? "tambahUser"
+      : "editUser";
+
+    const payload = {
+
+      action: action,
+
+      id: id,
 
       nama:
         document.getElementById("nama").value,
@@ -518,15 +532,43 @@ async function simpanUser(){
       role:
         document.getElementById("role").value
 
-    })
+    };
 
-  });
+    console.log(payload);
 
-  alert("User berhasil disimpan");
+    const response = await fetch(API_URL,{
 
-  resetForm();
+      method:"POST",
 
-  loadUsers();
+      body:JSON.stringify(payload)
+
+    });
+
+    const result = await response.json();
+
+    console.log(result);
+
+    if(result.status){
+
+      alert(result.message);
+
+      resetForm();
+
+      loadUsers();
+
+    }else{
+
+      alert("Gagal simpan user");
+
+    }
+
+  }catch(error){
+
+    console.log(error);
+
+    alert("Terjadi error sistem");
+
+  }
 
 }
 
