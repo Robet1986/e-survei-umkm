@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>E-Survei UMKM</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="bg-gray-100 flex items-center justify-center h-screen">
+
+  <div class="bg-white p-8 rounded-2xl shadow-lg w-96">
+
+    <h1 class="text-3xl font-bold text-center mb-6 text-blue-600">
+      E-Survei UMKM
+    </h1>
+
+    <input
+      type="text"
+      id="username"
+      placeholder="Username"
+      class="w-full border p-3 rounded-lg mb-4"
+    >
+
+    <input
+      type="password"
+      id="password"
+      placeholder="Password"
+      class="w-full border p-3 rounded-lg mb-4"
+    >
+
+    <button
+      onclick="login()"
+      class="w-full bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-lg"
+    >
+      Login
+    </button>
+
+    <p id="message" class="text-center mt-4 text-red-500"></p>
+
+  </div>
+
+  <script src="script.js"></script>
+
+</body>
+</html>

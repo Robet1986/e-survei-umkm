@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+
+  <meta charset="UTF-8">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0">
+
+  <title>Dashboard Admin</title>
+
+  <!-- TAILWIND -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- XLSX -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+  <!-- JSPDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+</head>
+
+<body class="bg-gray-100">
+
+<!-- HEADER -->
+<div class="bg-blue-600 text-white p-4 shadow">
+
+  <div class="flex justify-between items-center">
+
+    <h1 class="text-2xl font-bold">
+      Dashboard Admin
+    </h1>
+
+    <button
+      onclick="logout()"
+      class="bg-red-500 px-4 py-2 rounded-lg"
+    >
+      Logout
+    </button>
+
+  </div>
+
+</div>
+
+<!-- CONTENT -->
+<div class="p-4">
+
+  <!-- STATISTIK -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+
+    <div class="bg-blue-600 text-white p-6 rounded-2xl shadow-lg">
+
+      <h2 class="text-xl font-bold">
+        Total Survei
+      </h2>
+
+      <p
+        id="totalSurvei"
+        class="text-4xl mt-4 font-bold">
+        0
+      </p>
+
+    </div>
+
+    <div class="bg-green-600 text-white p-6 rounded-2xl shadow-lg">
+
+      <h2 class="text-xl font-bold">
+        Total Mahasiswa
+      </h2>
+
+      <p
+        id="totalMahasiswa"
+        class="text-4xl mt-4 font-bold">
+        0
+      </p>
+
+    </div>
+
+    <div class="bg-yellow-500 text-white p-6 rounded-2xl shadow-lg">
+
+      <h2 class="text-xl font-bold">
+        Total UMKM
+      </h2>
+
+      <p
+        id="totalUMKM"
+        class="text-4xl mt-4 font-bold">
+        0
+      </p>
+
+    </div>
+
+  </div>
+
+
+  <!-- USER MANAGEMENT -->
+  <div class="bg-white p-6 rounded-2xl shadow-lg mb-6">
+
+    <h2 class="text-2xl font-bold mb-6 text-blue-600">
+      Manajemen User
+    </h2>
+
+    <!-- FORM -->
+    <div class="grid md:grid-cols-5 gap-4 mb-6">
+
+      <input
+        type="hidden"
+        id="user_id"
+      >
+
+      <input
+        type="text"
+        id="nama"
+        placeholder="Nama"
+        class="border p-3 rounded-lg"
+      >
+
+      <input
+        type="text"
+        id="username"
+        placeholder="Username"
+        class="border p-3 rounded-lg"
+      >
+
+      <input
+        type="text"
+        id="password"
+        placeholder="Password"
+        class="border p-3 rounded-lg"
+      >
+
+      <select
+        id="role"
+        class="border p-3 rounded-lg"
+      >
+
+        <option value="user">
+          User
+        </option>
+
+        <option value="admin">
+          Admin
+        </option>
+
+      </select>
+
+    </div>
+
+    <!-- BUTTON -->
+    <div class="flex gap-4 mb-6">
+
+      <button
+        onclick="simpanUser()"
+        class="bg-blue-600 text-white px-4 py-3 rounded-lg"
+      >
+        Simpan User
+      </button>
+
+      <button
+        onclick="resetForm()"
+        class="bg-gray-500 text-white px-4 py-3 rounded-lg"
+      >
+        Reset
+      </button>
+
+    </div>
+
+    <!-- TABLE USERS -->
+    <div class="overflow-auto">
+
+      <table class="w-full border">
+
+        <thead class="bg-blue-600 text-white">
+
+          <tr>
+
+            <th class="border p-3">
+              Nama
+            </th>
+
+            <th class="border p-3">
+              Username
+            </th>
+
+            <th class="border p-3">
+              Role
+            </th>
+
+            <th class="border p-3">
+              Action
+            </th>
+
+          </tr>
+
+        </thead>
+
+        <tbody id="tableUsers">
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+
+  <!-- SEARCH -->
+  <div class="bg-white p-4 rounded-2xl shadow-lg mb-4">
+
+    <div class="flex flex-col md:flex-row gap-4">
+
+      <input
+        type="text"
+        id="search"
+        placeholder="Cari UMKM / Mahasiswa"
+        class="border p-3 rounded-lg w-full"
+        onkeyup="filterData()"
+      >
+
+      <button
+        onclick="exportExcel()"
+        class="bg-green-600 text-white px-4 py-3 rounded-lg"
+      >
+        Export Excel
+      </button>
+
+      <button
+        onclick="exportPDF()"
+        class="bg-red-600 text-white px-4 py-3 rounded-lg"
+      >
+        Export PDF
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- TABEL SURVEI -->
+  <div class="bg-white p-6 rounded-2xl shadow-lg overflow-auto">
+
+    <h2 class="text-2xl font-bold mb-6 text-blue-600">
+      Data Survei UMKM
+    </h2>
+
+    <table
+      id="tableExport"
+      class="w-full border border-gray-300">
+
+      <thead class="bg-blue-600 text-white">
+
+        <tr>
+
+          <th class="p-3 border">Mahasiswa</th>
+          <th class="p-3 border">Nama UMKM</th>
+          <th class="p-3 border">Alamat</th>
+          <th class="p-3 border">Latitude</th>
+          <th class="p-3 border">Longitude</th>
+          <th class="p-3 border">Maps</th>
+          <th class="p-3 border">Waktu</th>
+
+        </tr>
+
+      </thead>
+
+      <tbody id="tableData">
+
+      </tbody>
+
+    </table>
+
+  </div>
+
+</div>
+
+<script>
+
+const API_URL =
+"https://script.google.com/macros/s/AKfycbxGk09hkYEevhHQTXdKfrdzqhSdyOWlUMhDvYQcIL_nyLxgRU-SiwCCCUl3umbDLXJpOQ/exec";
+
+let allData = [];
+
+
+// =======================
+// LOAD DATA SURVEI
+// =======================
+async function loadData(){
+
+  const response = await fetch(API_URL,{
+
+    method:"POST",
+
+    body:JSON.stringify({
+      action:"getSurvei"
+    })
+
+  });
+
+  const result = await response.json();
+
+  allData = result;
+
+  renderTable(result);
+
+  updateStatistik(result);
+
+}
+
+loadData();
+
+
+// =======================
+// RENDER SURVEI
+// =======================
+function renderTable(data){
+
+  let html = "";
+
+  data.forEach(item => {
+
+    html += `
+
+      <tr class="text-center">
+
+        <td class="border p-2">
+          ${item.mahasiswa}
+        </td>
+
+        <td class="border p-2">
+          ${item.nama_umkm}
+        </td>
+
+        <td class="border p-2">
+          ${item.alamat}
+        </td>
+
+        <td class="border p-2">
+          ${item.latitude}
+        </td>
+
+        <td class="border p-2">
+          ${item.longitude}
+        </td>
+
+        <td class="border p-2">
+
+          <a
+            href="${item.maps}"
+            target="_blank"
+            class="bg-green-500 text-white px-3 py-1 rounded-lg"
+          >
+            Maps
+          </a>
+
+        </td>
+
+        <td class="border p-2">
+          ${item.waktu}
+        </td>
+
+      </tr>
+
+    `;
+
+  });
+
+  document.getElementById("tableData").innerHTML =
+    html;
+
+}
+
+
+// =======================
+// FILTER DATA
+// =======================
+function filterData(){
+
+  const keyword =
+    document.getElementById("search")
+    .value
+    .toLowerCase();
+
+  const filtered = allData.filter(item =>
+
+    item.mahasiswa.toLowerCase().includes(keyword) ||
+    item.nama_umkm.toLowerCase().includes(keyword)
+
+  );
+
+  renderTable(filtered);
+
+}
+
+
+// =======================
+// UPDATE STATISTIK
+// =======================
+function updateStatistik(data){
+
+  document.getElementById("totalSurvei")
+    .innerHTML = data.length;
+
+  document.getElementById("totalUMKM")
+    .innerHTML = data.length;
+
+  const mahasiswa =
+    [...new Set(data.map(item =>
+      item.mahasiswa
+    ))];
+
+  document.getElementById("totalMahasiswa")
+    .innerHTML = mahasiswa.length;
+
+}
+
+
+// =======================
+// LOAD USERS
+// =======================
+async function loadUsers(){
+
+  const response = await fetch(API_URL,{
+
+    method:"POST",
+
+    body:JSON.stringify({
+      action:"getUsers"
+    })
+
+  });
+
+  const result = await response.json();
+
+  let html = "";
+
+  result.forEach(item => {
+
+    html += `
+
+      <tr>
+
+        <td class="border p-2">
+          ${item.nama}
+        </td>
+
+        <td class="border p-2">
+          ${item.username}
+        </td>
+
+        <td class="border p-2">
+          ${item.role}
+        </td>
+
+        <td class="border p-2 flex gap-2">
+
+          <button
+            onclick='setEdit(${JSON.stringify(item)})'
+            class="bg-yellow-500 text-white px-3 py-1 rounded"
+          >
+            Edit
+          </button>
+
+          <button
+            onclick='hapusUser("${item.id}")'
+            class="bg-red-600 text-white px-3 py-1 rounded"
+          >
+            Hapus
+          </button>
+
+        </td>
+
+      </tr>
+
+    `;
+
+  });
+
+  document.getElementById("tableUsers").innerHTML =
+    html;
+
+}
+
+loadUsers();
+
+
+// =======================
+// SIMPAN USER
+// =======================
+async function simpanUser(){
+
+  const id =
+    document.getElementById("user_id").value;
+
+  const action =
+    id == ""
+    ? "tambahUser"
+    : "editUser";
+
+  await fetch(API_URL,{
+
+    method:"POST",
+
+    body:JSON.stringify({
+
+      action:action,
+
+      id:id,
+
+      nama:
+        document.getElementById("nama").value,
+
+      username:
+        document.getElementById("username").value,
+
+      password:
+        document.getElementById("password").value,
+
+      role:
+        document.getElementById("role").value
+
+    })
+
+  });
+
+  alert("User berhasil disimpan");
+
+  resetForm();
+
+  loadUsers();
+
+}
+
+
+// =======================
+// SET EDIT
+// =======================
+function setEdit(item){
+
+  document.getElementById("user_id").value =
+    item.id;
+
+  document.getElementById("nama").value =
+    item.nama;
+
+  document.getElementById("username").value =
+    item.username;
+
+  document.getElementById("password").value =
+    item.password;
+
+  document.getElementById("role").value =
+    item.role;
+
+}
+
+
+// =======================
+// HAPUS USER
+// =======================
+async function hapusUser(id){
+
+  if(confirm("Hapus user ini?")){
+
+    await fetch(API_URL,{
+
+      method:"POST",
+
+      body:JSON.stringify({
+
+        action:"hapusUser",
+
+        id:id
+
+      })
+
+    });
+
+    loadUsers();
+
+  }
+
+}
+
+
+// =======================
+// RESET FORM
+// =======================
+function resetForm(){
+
+  document.getElementById("user_id").value = "";
+  document.getElementById("nama").value = "";
+  document.getElementById("username").value = "";
+  document.getElementById("password").value = "";
+  document.getElementById("role").value = "user";
+
+}
+
+
+// =======================
+// EXPORT EXCEL
+// =======================
+function exportExcel(){
+
+  // DATA JSON
+  const data = allData.map(item => ({
+
+    Mahasiswa: item.mahasiswa,
+    Nama_UMKM: item.nama_umkm,
+    Alamat: item.alamat,
+    Latitude: item.latitude,
+    Longitude: item.longitude,
+    Maps: item.maps,
+    Waktu: item.waktu
+
+  }));
+
+  // BUAT SHEET
+  const ws =
+    XLSX.utils.json_to_sheet(data);
+
+  const wb =
+    XLSX.utils.book_new();
+
+  XLSX.utils.book_append_sheet(
+    wb,
+    ws,
+    "Survei"
+  );
+
+  // DOWNLOAD
+  XLSX.writeFile(
+    wb,
+    "Data-Survei-UMKM.xlsx"
+  );
+
+}
+
+
+// =======================
+// EXPORT PDF
+// =======================
+function exportPDF(){
+
+  const { jsPDF } = window.jspdf;
+
+  const doc = new jsPDF();
+
+  let y = 10;
+
+  doc.text("DATA SURVEI UMKM", 10, y);
+
+  y += 10;
+
+  allData.forEach((item,index)=>{
+
+    doc.text(
+      `${index+1}. ${item.nama_umkm} - ${item.mahasiswa}`,
+      10,
+      y
+    );
+
+    y += 10;
+
+  });
+
+  doc.save("Data-Survei-UMKM.pdf");
+
+}
+
+
+// =======================
+// LOGOUT
+// =======================
+function logout(){
+
+  localStorage.clear();
+
+  window.location.href =
+    "index.html";
+
+}
+
+</script>
+
+</body>
+</html>

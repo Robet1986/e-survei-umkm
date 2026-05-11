@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Dashboard User</title>
+
+  <!-- TAILWIND -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- LEAFLET -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet/dist/leaflet.css"
+  />
+
+  <script
+    src="https://unpkg.com/leaflet/dist/leaflet.js">
+  </script>
+
+</head>
+
+<body class="bg-gray-100">
+
+<!-- HEADER -->
+<div class="bg-blue-600 text-white p-4 shadow">
+
+  <div class="flex justify-between items-center">
+
+    <h1 class="text-2xl font-bold">
+      Dashboard Mahasiswa
+    </h1>
+
+    <button
+      onclick="logout()"
+      class="bg-red-500 px-4 py-2 rounded-lg"
+    >
+      Logout
+    </button>
+
+  </div>
+
+</div>
+
+<!-- CONTENT -->
+<div class="p-4">
+
+  <div class="bg-white p-6 rounded-2xl shadow-lg">
+
+    <h2 class="text-2xl font-bold mb-6 text-blue-600">
+      Form Survei UMKM
+    </h2>
+
+    <!-- NAMA UMKM -->
+    <input
+      type="text"
+      id="nama_umkm"
+      placeholder="Nama UMKM"
+      class="w-full border p-3 rounded-lg mb-4"
+    >
+
+    <!-- ALAMAT -->
+    <textarea
+      id="alamat"
+      placeholder="Alamat UMKM"
+      class="w-full border p-3 rounded-lg mb-4"
+    ></textarea>
+
+    <!-- MAP -->
+    <div
+      id="map"
+      class="w-full h-96 rounded-xl mb-4">
+    </div>
+
+    <!-- LATITUDE -->
+    <input
+      type="text"
+      id="latitude"
+      placeholder="Latitude"
+      class="w-full border p-3 rounded-lg mb-4 bg-gray-100"
+      readonly
+    >
+
+    <!-- LONGITUDE -->
+    <input
+      type="text"
+      id="longitude"
+      placeholder="Longitude"
+      class="w-full border p-3 rounded-lg mb-4 bg-gray-100"
+      readonly
+    >
+
+    <!-- SUBMIT -->
+    <button
+      onclick="submitSurvei()"
+      class="w-full bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-lg"
+    >
+      Submit Survei
+    </button>
+
+    <!-- MESSAGE -->
+    <p
+      id="message"
+      class="mt-4 text-center text-green-600">
+    </p>
+
+  </div>
+
+</div>
+
+<script>
+
+const API_URL =
+"https://script.google.com/macros/s/AKfycbxGk09hkYEevhHQTXdKfrdzqhSdyOWlUMhDvYQcIL_nyLxgRU-SiwCCCUl3umbDLXJpOQ/exec";
+
+
+// =======================
+// INIT MAP
+// =======================
+const map = L.map('map').setView([-7.2575,112.7521], 13);
+
+L.tileLayer(
+  'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+{
+  attribution: '&copy; OpenStreetMap'
+}).addTo(map);
+
+let marker;
+
+
+// =======================
+// AUTO DETECT LOCATION
+// =======================
+if(navigator.geolocation){
+
+  navigator.geolocation.getCurrentPosition(
+
+    function(position){
+
+      const lat = position.coords.latitude;
+      const lng = position.coords.longitude;
+
+      // PINDAH MAP
+      map.setView([lat, lng], 17);
+
+      // ISI INPUT
+      document.getElementById("latitude").value = lat;
+      document.getElementById("longitude").value = lng;
+
+      // HAPUS MARKER LAMA
+      if(marker){
+        map.removeLayer(marker);
+      }
+
+      // BUAT MARKER
+      marker = L.marker([lat,lng])
+        .addTo(map)
+        .bindPopup("Lokasi Anda")
+        .openPopup();
+
+    },
+
+    function(error){
+
+      alert("Gagal mengambil lokasi GPS");
+
+    }
+
+  );
+
+}else{
+
+  alert("Browser tidak mendukung GPS");
+
+}
+
+
+// =======================
+// KLIK MAP MANUAL
+// =======================
+map.on('click', function(e){
+
+  const lat = e.latlng.lat;
+  const lng = e.latlng.lng;
+
+  // UPDATE INPUT
+  document.getElementById("latitude").value = lat;
+  document.getElementById("longitude").value = lng;
+
+  // HAPUS MARKER LAMA
+  if(marker){
+    map.removeLayer(marker);
+  }
+
+  // TAMBAH MARKER BARU
+  marker = L.marker([lat,lng])
+    .addTo(map)
+    .bindPopup("Lokasi Dipilih")
+    .openPopup();
+
+});
+
+
+// =======================
+// SUBMIT SURVEI
+// =======================
+async function submitSurvei(){
+
+  // VALIDASI
+  if(
+    document.getElementById("nama_umkm").value == "" ||
+    document.getElementById("alamat").value == ""
+  ){
+
+    alert("Lengkapi data terlebih dahulu");
+    return;
+
+  }
+
+  const data = {
+
+    action:"simpanSurvei",
+
+    mahasiswa:
+      localStorage.getItem("nama"),
+
+    nama_umkm:
+      document.getElementById("nama_umkm").value,
+
+    alamat:
+      document.getElementById("alamat").value,
+
+    latitude:
+      document.getElementById("latitude").value,
+
+    longitude:
+      document.getElementById("longitude").value
+
+  };
+
+  try{
+
+    const response = await fetch(API_URL,{
+
+      method:"POST",
+
+      body:JSON.stringify(data)
+
+    });
+
+    const result = await response.json();
+
+    if(result.status){
+
+      document.getElementById("message").innerHTML =
+        "Survei berhasil disimpan";
+
+      // RESET FORM
+      document.getElementById("nama_umkm").value = "";
+      document.getElementById("alamat").value = "";
+
+    }else{
+
+      document.getElementById("message").innerHTML =
+        "Gagal menyimpan data";
+
+    }
+
+  }catch(error){
+
+    console.log(error);
+
+    alert("Terjadi kesalahan koneksi");
+
+  }
+
+}
+
+
+// =======================
+// LOGOUT
+// =======================
+function logout(){
+
+  localStorage.clear();
+
+  window.location.href = "index.html";
+
+}
+
+</script>
+
+</body>
+</html>
